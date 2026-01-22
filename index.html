@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RC7 HUB | Official Phantom Node</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #ff0000;
+            --primary-glow: rgba(255, 0, 0, 0.7);
+            --bg-deep: #020202;
+            --surface: #0a0a0a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-dim: #94a3b8;
+        }
+
+        /* --- BACKGROUND CANVAS --- */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--bg-deep);
+        }
+
+        @keyframes ultraPulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px var(--primary-glow), inset 0 0 10px var(--primary-glow); }
+            50% { transform: scale(1.08); box-shadow: 0 0 35px var(--primary-glow), inset 0 0 20px var(--primary-glow); }
+            100% { transform: scale(1); box-shadow: 0 0 15px var(--primary-glow), inset 0 0 10px var(--primary-glow); }
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-deep); 
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- NAVIGATION --- */
+        header {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(2, 2, 2, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-container {
+            display: flex; overflow-x: auto; white-space: nowrap;
+            padding: 0 20px; gap: 12px; scrollbar-width: none;
+        }
+        .nav-container::-webkit-scrollbar { display: none; }
+
+        .nav-item {
+            padding: 12px 24px; border-radius: 16px;
+            background: var(--glass); border: 1px solid var(--border);
+            color: var(--text-dim); font-weight: 700; font-size: 0.8rem;
+            text-transform: uppercase; transition: 0.4s;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            background: var(--primary); color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
+        }
+
+        /* --- PAGE SYSTEM --- */
+        .main-content { max-width: 600px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+        .page { display: none; animation: pageEnter 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+        .page.active { display: block; }
+
+        @keyframes pageEnter {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- HOME --- */
+        .dashboard-home { text-align: center; padding: 40px 0; }
+        .phantom-logo {
+            width: 90px; height: 90px; margin: 0 auto 20px;
+            background: #000;
+            border: 3px solid var(--primary); border-radius: 25px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.8rem; color: var(--primary);
+            animation: ultraPulse 2.5s infinite ease-in-out, iconFloat 4s infinite ease-in-out;
+            text-shadow: 0 0 15px var(--primary);
+        }
+
+        .creator-title { font-family: 'Orbitron'; font-size: 2.5rem; margin-bottom: 5px; }
+        .sub-tag { color: var(--primary); font-family: 'Orbitron'; font-size: 0.8rem; font-weight: 900; letter-spacing: 2px; }
+
+        /* --- FEATURES --- */
+        .feat-card {
+            background: rgba(13, 13, 13, 0.7); border-radius: 26px; padding: 25px; 
+            margin-bottom: 20px; border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+        .feat-card i { font-size: 2.2rem; color: var(--primary); margin-bottom: 15px; display: block; animation: iconFloat 3s infinite ease-in-out; }
+        .feat-card h3 { font-family: 'Orbitron'; font-size: 1.1rem; margin-bottom: 12px; }
+        .feat-card li { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; list-style: none; }
+        .feat-card li i { font-size: 0.8rem; color: #00ff88; margin: 0; animation: none; }
+
+        /* --- DOWNLOAD --- */
+        .dl-item {
+            background: linear-gradient(145deg, rgba(15,15,15,0.8), rgba(5,5,5,0.8));
+            border: 1px solid var(--border);
+            border-radius: 26px; padding: 22px; margin-bottom: 18px;
+            display: flex; align-items: center; justify-content: space-between;
+            backdrop-filter: blur(10px);
+        }
+        
+        .dl-icon-wrapper {
+            width: 70px; height: 70px; border-radius: 22px;
+            background: #000; display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; color: var(--primary);
+            border: 2px solid var(--primary);
+            animation: ultraPulse 3s infinite ease-in-out;
+            text-shadow: 0 0 12px var(--primary);
+        }
+
+        .dl-details { flex: 1; margin-left: 20px; }
+        .dl-details h4 { font-family: 'Orbitron'; font-size: 0.95rem; letter-spacing: 1px; }
+        .dl-details p { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+
+        .dl-btn {
+            background: #ffffff; color: #000; padding: 12px 20px;
+            border-radius: 15px; text-decoration: none; font-weight: 900;
+            font-size: 0.8rem; transition: 0.3s;
+        }
+        .dl-btn:hover { background: var(--primary); color: #fff; box-shadow: 0 0 20px var(--primary-glow); transform: scale(1.05); }
+
+        /* --- SHOWCASE --- */
+        .video-container {
+            border-radius: 30px; overflow: hidden; border: 2px solid var(--primary);
+            position: relative; padding-top: 177.77%; margin-bottom: 25px;
+        }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* --- SOCIAL --- */
+        .social-link {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 22px; border-radius: 22px; display: flex; align-items: center;
+            gap: 15px; text-decoration: none; color: white; margin-bottom: 15px;
+            transition: 0.3s; backdrop-filter: blur(10px);
+        }
+        .social-link:hover { background: rgba(255,0,0,0.1); border-color: var(--primary); }
+        .social-link i { font-size: 2.2rem; animation: iconFloat 3s infinite ease-in-out; }
+
+        footer { text-align: center; padding: 50px 20px; color: #444; font-size: 0.75rem; font-weight: 700; position: relative; z-index: 1; }
+    </style>
+</head>
+<body>
+
+    <canvas id="particle-canvas"></canvas>
+
+    <header>
+        <div class="nav-container">
+            <div class="nav-item active" onclick="navTab('tab-home', this)">Home</div>
+            <div class="nav-item" onclick="navTab('tab-feats', this)">Advantages</div>
+            <div class="nav-item" onclick="navTab('tab-video', this)">Showcase</div>
+            <div class="nav-item" onclick="navTab('tab-dl', this)">Download</div>
+            <div class="nav-item" onclick="navTab('tab-soc', this)">Social</div>
+        </div>
+    </header>
+
+    <main class="main-content">
+
+        <div id="tab-home" class="page active">
+            <div class="dashboard-home">
+                <div class="phantom-logo"><i class="fa-solid fa-ghost"></i></div>
+                <h1 class="creator-title">RC7 HUB</h1>
+                <span class="sub-tag">BY PHANTOM NODE</span>
+                <div style="margin-top: 35px; padding: 25px; background: rgba(255,255,255,0.05); border-radius: 25px; border: 1px solid var(--border); text-align: left; backdrop-filter: blur(10px);">
+                    <h4 style="font-family: 'Orbitron'; color: var(--primary); margin-bottom: 10px;">SYSTEM PROTOCOL</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.8;">
+                        Welcome to <b>RC7 HUB</b>. We deliver cutting-edge script execution technology with multi-layered anti-ban protection. Unrivaled injection speed, exclusively developed by Phantom Node.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-feats" class="page">
+            <h2 style="font-family: 'Orbitron'; font-size: 1.4rem; text-align: center; margin-bottom: 30px;">ELITE ADVANTAGES</h2>
+            <div class="feat-card">
+                <i class="fa-brands fa-windows"></i>
+                <h3>RC7 WINDOWS</h3>
+                <li><i class="fa-solid fa-circle-check"></i> Level 8 Execution Power</li>
+                <li><i class="fa-solid fa-circle-check"></i> Advanced Anti-Tamper Bypass</li>
+                <li><i class="fa-solid fa-circle-check"></i> Multi-Instance Support</li>
+            </div>
+            <div class="feat-card">
+                <i class="fa-brands fa-android"></i>
+                <h3>RC7 ANDROID 64 BIT</h3>
+                <li><i class="fa-solid fa-circle-check"></i> High-Speed ARM64 Engine</li>
+                <li><i class="fa-solid fa-circle-check"></i> Crash-Free Architecture</li>
+                <li><i class="fa-solid fa-circle-check"></i> Dynamic GUI Rendering</li>
+            </div>
+            <div class="feat-card">
+                <i class="fa-brands fa-android"></i>
+                <h3>RC7 ANDROID 32 BIT</h3>
+                <li><i class="fa-solid fa-circle-check"></i> Ultra Lightweight Lite Engine</li>
+                <li><i class="fa-solid fa-circle-check"></i> All Emulator Compatibility</li>
+                <li><i class="fa-solid fa-circle-check"></i> Battery Saver Technology</li>
+            </div>
+            <div class="feat-card">
+                <i class="fa-brands fa-apple"></i>
+                <h3>RC7 IOS</h3>
+                <li><i class="fa-solid fa-circle-check"></i> No Jailbreak Required</li>
+                <li><i class="fa-solid fa-circle-check"></i> Secure Sideloading (.ipa)</li>
+                <li><i class="fa-solid fa-circle-check"></i> Support iOS 15 - 17+</li>
+            </div>
+            <div class="feat-card">
+                <i class="fa-solid fa-microchip"></i>
+                <h3>SCRIPT WARE V1</h3>
+                <li><i class="fa-solid fa-circle-check"></i> Global Cloud Script Hub</li>
+                <li><i class="fa-solid fa-circle-check"></i> Real-time Auto Update</li>
+                <li><i class="fa-solid fa-circle-check"></i> Newest Injection Engine</li>
+            </div>
+        </div>
+
+        <div id="tab-video" class="page">
+            <div class="video-container"><iframe src="https://www.youtube.com/embed/FuR5whY6KS0"></iframe></div>
+            <div class="video-container"><iframe src="https://www.youtube.com/embed/CsqvrtKiXKs"></iframe></div>
+            <div class="video-container"><iframe src="https://www.youtube.com/embed/Swt1p-w35W0"></iframe></div>
+        </div>
+
+        <div id="tab-dl" class="page">
+            <h2 style="font-family: 'Orbitron'; font-size: 1.4rem; text-align: center; margin-bottom: 30px;">ARMORY</h2>
+            <div class="dl-item">
+                <div class="dl-icon-wrapper"><i class="fa-brands fa-windows"></i></div>
+                <div class="dl-details"><h4>WINDOWS</h4><p>REMAKE VERSION • .ZIP</p></div>
+                <a href="https://www.mediafire.com/file/9v5w95fywicuj2r/RC7_Remake.zip/file?dkey=bbwjvc8t7t1&r=1399" class="dl-btn">EXE</a>
+            </div>
+            <div class="dl-item">
+                <div class="dl-icon-wrapper"><i class="fa-brands fa-android"></i></div>
+                <div class="dl-details"><h4>ANDROID 64</h4><p>STABLE BUILD • APK</p></div>
+                <a href="https://drive.google.com/drive/folders/1rqx9hJwbLAaTHD4MaPLXiyS-7XHiSDBK" class="dl-btn">APK</a>
+            </div>
+            <div class="dl-item">
+                <div class="dl-icon-wrapper"><i class="fa-brands fa-android"></i></div>
+                <div class="dl-details"><h4>ANDROID 32</h4><p>LITE COMPATIBLE • APK</p></div>
+                <a href="https://drive.google.com/drive/folders/1J8PObMLqOyIIxc3a0utofEg2xiWw7H6C" class="dl-btn">APK</a>
+            </div>
+            <div class="dl-item">
+                <div class="dl-icon-wrapper"><i class="fa-solid fa-terminal"></i></div>
+                <div class="dl-details"><h4>SCRIPT WARE</h4><p>V1 NEW ENGINE</p></div>
+                <a href="https://drive.google.com/drive/folders/1oIIbLPBpzVkjBFI7SzloEpphzTy8Q7Er" class="dl-btn">GET</a>
+            </div>
+            <div class="dl-item">
+                <div class="dl-icon-wrapper"><i class="fa-brands fa-apple"></i></div>
+                <div class="dl-details"><h4>RC7 IOS</h4><p>OFFICIAL IPA BUILD</p></div>
+                <a href="https://drive.google.com/drive/folders/1T-B3EM0eUo4PXUg6rjV9Vg4Q91z0ga1e" class="dl-btn">IPA</a>
+            </div>
+        </div>
+
+        <div id="tab-soc" class="page">
+            <a href="https://youtube.com/@rc7reborn1?si=vg3SOKhSs-Wq6PRz" class="social-link" target="_blank"><i class="fa-brands fa-youtube" style="color:#ff0000;"></i> <div><h4 style="font-family:'Orbitron'">YouTube</h4><p style="font-size:0.7rem;color:var(--text-dim)">Latest Tutorials</p></div></a>
+            <a href="https://tiktok.com/@tubers93community" class="social-link" target="_blank"><i class="fa-brands fa-tiktok"></i> <div><h4 style="font-family:'Orbitron'">TikTok</h4><p style="font-size:0.7rem;color:var(--text-dim)">Short Showcase</p></div></a>
+            <a href="https://discord.gg/5rr9FPh9EQ" class="social-link" target="_blank"><i class="fa-brands fa-discord" style="color:#5865F2;"></i> <div><h4 style="font-family:'Orbitron'">Discord</h4><p style="font-size:0.7rem;color:var(--text-dim)">Community Support</p></div></a>
+        </div>
+
+    </main>
+
+    <footer>
+        &copy; 2026 RC7 HUB | POWERED BY PHANTOM NODE
+    </footer>
+
+    <script>
+        /* --- NAVIGATION LOGIC --- */
+        function navTab(tabId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            btn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        }
+
+        /* --- MOLECULE BACKGROUND ENGINE --- */
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 60;
+
+        class Particle {
+            constructor() {
+                this.init();
+            }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 2 + 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                ctx.fill();
+            }
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255, 0, 0, ${1 - dist / 120})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        animate();
+    </script>
+</body>
+</html>
